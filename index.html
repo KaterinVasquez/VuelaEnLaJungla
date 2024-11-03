@@ -12,6 +12,20 @@
     <script>
         var mqttClient;
         var unityInstance;
+        // Define la función publishMessage
+function publishMessage(topic, message) {
+            if (mqttClient && mqttClient.connected) {
+                mqttClient.publish(topic, message, (err) => {
+                    if (err) {
+                        console.error("Error al publicar el mensaje:", err);
+                    } else {
+                        console.log(`Mensaje publicado en ${topic}: ${message}`);
+                    }
+                });
+            } else {
+                console.warn("Cliente MQTT no está conectado.");
+            }
+        }
 
         function connectMQTT() {
             mqttClient = mqtt.connect('wss://qhali.online:8094/mqtt');
@@ -43,21 +57,6 @@
             mqttClient.on('error', (error) => {
                 console.error("Error de conexión:", error);
             });
-        }
-
-// Define la función publishMessage
-function publishMessage(topic, message) {
-            if (mqttClient && mqttClient.connected) {
-                mqttClient.publish(topic, message, (err) => {
-                    if (err) {
-                        console.error("Error al publicar el mensaje:", err);
-                    } else {
-                        console.log(`Mensaje publicado en ${topic}: ${message}`);
-                    }
-                });
-            } else {
-                console.warn("Cliente MQTT no está conectado.");
-            }
         }
       createUnityInstance(document.querySelector("#unity-canvas"), {
         dataUrl: "Build/Final_Juego.data.unityweb",
