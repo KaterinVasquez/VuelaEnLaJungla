@@ -4,11 +4,48 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | JungleGame</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   </head>
   <body style="text-align: center">
     <canvas id="unity-canvas" width=960 height=600 style="width: 960px; height: 600px; background: #231F20"></canvas>
     <script src="Build/Final_Juego.loader.js"></script>
     <script>
+        var mqttClient;
+        var unityInstance;
+
+        function connectMQTT() {
+            mqttClient = mqtt.connect('wss://qhali.online:8094/mqtt');
+
+            mqttClient.on('connect', () => {
+                console.log("Conectado a MQTT Broker.");
+
+                // Enviar mensaje a Unity para confirmar la conexión
+                if (unityInstance) {
+                    unityInstance.SendMessage('Player', 'OnMQTTConnected', 'true');
+                }
+
+                mqttClient.subscribe("sensor/objetoDetectado", (err) => {
+                    if (err) {
+                        console.error("Error al suscribirse:", err);
+                    } else {
+                        console.log("Suscripción exitosa a sensor/objetoDetectado");
+                    }
+                });
+            });
+
+            mqttClient.on('message', (topic, message) => {
+                console.log("Mensaje recibido: " + message.toString());
+                if (unityInstance) {
+                    unityInstance.SendMessage('Player', 'OnMessageReceived', message.toString());
+                }
+            });
+
+            mqttClient.on('error', (error) => {
+                console.error("Error de conexión:", error);
+            });
+        }
+
+
       createUnityInstance(document.querySelector("#unity-canvas"), {
         dataUrl: "Build/Final_Juego.data.unityweb",
         frameworkUrl: "Build/Final_Juego.framework.js.unityweb",
@@ -19,6 +56,10 @@
         productVersion: "1.0",
         // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
         // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
+      }).then((unityInstanceObj) => {
+            unityInstance = unityInstanceObj; // Guarda la instancia de Unity
+            connectMQTT(); // Llama a la función para conectar a MQTT
+
       });
     </script>
   </body>
