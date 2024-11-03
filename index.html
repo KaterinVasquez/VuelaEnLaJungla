@@ -45,7 +45,20 @@
             });
         }
 
-
+// Define la función publishMessage
+function publishMessage(topic, message) {
+            if (mqttClient && mqttClient.connected) {
+                mqttClient.publish(topic, message, (err) => {
+                    if (err) {
+                        console.error("Error al publicar el mensaje:", err);
+                    } else {
+                        console.log(`Mensaje publicado en ${topic}: ${message}`);
+                    }
+                });
+            } else {
+                console.warn("Cliente MQTT no está conectado.");
+            }
+        }
       createUnityInstance(document.querySelector("#unity-canvas"), {
         dataUrl: "Build/Final_Juego.data.unityweb",
         frameworkUrl: "Build/Final_Juego.framework.js.unityweb",
